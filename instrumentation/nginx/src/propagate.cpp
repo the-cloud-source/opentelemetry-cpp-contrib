@@ -2,16 +2,21 @@
 #include "location_config.h"
 #include "nginx_utils.h"
 #include <opentelemetry/context/context_value.h>
+#include <opentelemetry/context/propagation/composite_propagator.h>
 #include <opentelemetry/trace/propagation/b3_propagator.h>
 #include <opentelemetry/trace/propagation/http_trace_context.h>
+#include <opentelemetry/trace/propagation/jaeger.h>
 #include <opentelemetry/trace/span.h>
 
 namespace trace = opentelemetry::trace;
 namespace nostd = opentelemetry::nostd;
+namespace context = opentelemetry::context;
 
 using OtelB3Propagator = trace::propagation::B3Propagator;
 using OtelB3MultiPropagator = trace::propagation::B3PropagatorMultiHeader;
 using OtelW3CPropagator = trace::propagation::HttpTraceContext;
+using OtelJaegerPropagator = trace::propagation::JaegerPropagator;
+using OtelCompositePropagator = context::propagation::CompositePropagator;
 
 static bool FindHeader(ngx_http_request_t* req, nostd::string_view key, nostd::string_view* value) {
   ngx_list_part_t* part = &req->headers_in.headers.part;
@@ -78,6 +83,16 @@ opentelemetry::context::Context ExtractContext(OtelCarrier* carrier) {
     case TracePropagationB3: {
       return OtelB3Propagator().Extract(textMapCarrier, root);
     }
+    case TracePropagationJaeger: {
+      return OtelJaegerPropagator().Extract(textMapCarrier, root);
+    }
+    case TracePropagationJaegerW3C: {
+      root = OtelW3CPropagator().Extract(textMapCarrier, root);
+      return OtelJaegerPropagator().Extract(textMapCarrier, root);
+      // return OtelCompositePropagtor().Extract(textMapCarrier, root);
+    }
+    case TracePropagationUnset:
+      return root;
     default:
       return root;
   }
@@ -100,6 +115,17 @@ void InjectContext(OtelCarrier* carrier, opentelemetry::context::Context context
       OtelB3MultiPropagator().Inject(textMapCarrier, context);
       break;
     }
+    case TracePropagationJaeger: {
+      OtelJaegerPropagator().Inject(textMapCarrier, context);
+      break;
+    }
+    case TracePropagationJaegerW3C: {
+      OtelW3CPropagator().Inject(textMapCarrier, context);
+      OtelJaegerPropagator().Inject(textMapCarrier, context);
+      break;
+    }
+    case TracePropagationUnset:
+      break;
     default:
       break;
   }

@@ -849,6 +849,24 @@ std::vector<HeaderPropagation> OtelPropagationVars() {
   };
 }
 
+std::vector<HeaderPropagation> JaegerPropagationVars() {
+  return {
+    {"proxy_set_header", "uber-trace-id",      "$opentelemetry_context_uber_trace_id"},
+    {"fastcgi_param",    "HTTP_UBER_TRACE_ID", "$opentelemetry_context_uber_trace_id"},
+  };
+}
+
+std::vector<HeaderPropagation> JaegerW3CPropagationVars() {
+  return {
+    {"proxy_set_header", "uber-trace-id",      "$opentelemetry_context_uber_trace_id"},
+    {"fastcgi_param",    "HTTP_UBER_TRACE_ID", "$opentelemetry_context_uber_trace_id"},
+    {"proxy_set_header", "traceparent", "$opentelemetry_context_traceparent"},
+    {"proxy_set_header", "tracestate", "$opentelemetry_context_tracestate"},
+    {"fastcgi_param", "HTTP_TRACEPARENT", "$opentelemetry_context_traceparent"},
+    {"fastcgi_param", "HTTP_TRACESTATE", "$opentelemetry_context_tracestate"},
+  };
+}
+
 char* OtelNgxSetPropagation(ngx_conf_t* conf, ngx_command_t*, void* locConf) {
   uint32_t numArgs = conf->args->nelts;
 
@@ -864,12 +882,16 @@ char* OtelNgxSetPropagation(ngx_conf_t* conf, ngx_command_t*, void* locConf) {
       locationConf->propagationType = TracePropagationB3Multi;
     } else if (propagationType == "w3c") {
       locationConf->propagationType = TracePropagationW3C;
+    } else if (propagationType == "jaeger") {
+      locationConf->propagationType = TracePropagationJaeger;
+    } else if (propagationType == "jaegerw3c") {
+      locationConf->propagationType = TracePropagationJaegerW3C;
     } else {
       ngx_log_error(NGX_LOG_ERR, conf->log, 0, "Unsupported propagation type");
       return (char*)NGX_CONF_ERROR;
     }
   } else {
-    locationConf->propagationType = TracePropagationW3C;
+    locationConf->propagationType = TracePropagationJaegerW3C;
   }
 
   std::vector<HeaderPropagation> propagationVars;
@@ -877,8 +899,14 @@ char* OtelNgxSetPropagation(ngx_conf_t* conf, ngx_command_t*, void* locConf) {
     propagationVars = B3PropagationVars();
   } else if (locationConf->propagationType == TracePropagationB3Multi) {
     propagationVars = B3MultiPropagationVars();
-  } else {
+  } else if (locationConf->propagationType == TracePropagationJaeger) {
+    propagationVars = JaegerPropagationVars();
+  } else if (locationConf->propagationType == TracePropagationJaegerW3C) {
+    propagationVars = JaegerW3CPropagationVars();
+  } else if (locationConf->propagationType == TracePropagationW3C) {
     propagationVars = OtelPropagationVars();
+  } else {
+    propagationVars = JaegerW3CPropagationVars();
   }
 
   ngx_array_t* oldArgs = conf->args;
