@@ -89,7 +89,7 @@ opentelemetry::context::Context ExtractContext(OtelCarrier* carrier) {
     case TracePropagationJaegerW3C: {
       root = OtelW3CPropagator().Extract(textMapCarrier, root);
       return OtelJaegerPropagator().Extract(textMapCarrier, root);
-      // return OtelCompositePropagtor().Extract(textMapCarrier, root);
+      // return OtelCompositePropagator().Extract(textMapCarrier, root);
     }
     case TracePropagationUnset:
       return root;
@@ -120,8 +120,8 @@ void InjectContext(OtelCarrier* carrier, opentelemetry::context::Context context
       break;
     }
     case TracePropagationJaegerW3C: {
-      OtelW3CPropagator().Inject(textMapCarrier, context);
       OtelJaegerPropagator().Inject(textMapCarrier, context);
+      OtelW3CPropagator().Inject(textMapCarrier, context);
       break;
     }
     case TracePropagationUnset:

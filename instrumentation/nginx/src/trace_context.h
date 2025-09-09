@@ -26,7 +26,7 @@ struct TraceContext {
   ngx_http_request_t* request;
   opentelemetry::nostd::shared_ptr<opentelemetry::trace::Span> request_span;
   /* Headers to be injected for the upstream request. */
-  TraceHeader traceHeader[2];
+  TraceHeader traceHeader[6];
 };
 
 bool TraceContextSetTraceHeader(
