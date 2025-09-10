@@ -66,6 +66,8 @@ nostd::string_view NgxHttpFlavor(ngx_http_request_t* req) {
       return "1.1";
     case NGX_HTTP_VERSION_20:
       return "2.0";
+    case NGX_HTTP_VERSION_30:
+      return "3.0";
     case NGX_HTTP_VERSION_10:
       return "1.0";
     default:
