@@ -221,20 +221,20 @@ TraceContext* GetTraceContext(ngx_http_request_t* req) {
   ngx_http_variable_value_t* val = ngx_http_get_indexed_variable(req, otel_ngx_variables[0].index);
 
   if (val == nullptr || val->not_found) {
-    ngx_log_error_core(NGX_LOG_WARN, req->connection->log, 0, "TraceContext not found");
+    ngx_log_error(NGX_LOG_WARN, req->connection->log, 0, "TraceContext not found");
     return nullptr;
   }
 
   std::unordered_map<ngx_http_request_t*, TraceContext*>* map = (std::unordered_map<ngx_http_request_t*, TraceContext*>*)val->data;
   if (map == nullptr) {
-    ngx_log_error_core(NGX_LOG_WARN, req->connection->log, 0, "TraceContext not found");
+    ngx_log_error(NGX_LOG_WARN, req->connection->log, 0, "TraceContext not found");
     return nullptr;
   }
   auto it = map->find(req);
   if (it != map->end()) {
     return it->second;
   }
-  ngx_log_error_core(NGX_LOG_WARN, req->connection->log, 0, "TraceContext not found");
+  ngx_log_error(NGX_LOG_WARN, req->connection->log, 0, "TraceContext not found");
   return nullptr;
 }
 
@@ -261,7 +261,7 @@ OtelGetSampled(ngx_http_request_t* req, ngx_http_variable_value_t* v, uintptr_t 
   TraceContext* traceContext = GetTraceContext(req);
 
   if (traceContext == nullptr || !traceContext->request_span) {
-    ngx_log_error_core(
+    ngx_log_error(
         NGX_LOG_ERR, req->connection->log, 0,
         "Unable to get trace context when getting span id");
     return NGX_OK;
@@ -301,7 +301,7 @@ OtelUberTraceId(ngx_http_request_t* req, ngx_http_variable_value_t* v, uintptr_t
   TraceContext* traceContext = GetTraceContext(req);
 
   if (traceContext == nullptr || !traceContext->request_span) {
-    ngx_log_error_core(
+    ngx_log_error(
       NGX_LOG_WARN, req->connection->log, 0,
       "Unable to get trace context when expanding tracecontext uber_trace_id var");
     return NGX_OK;
@@ -338,7 +338,7 @@ OtelGetTraceContextVar(ngx_http_request_t* req, ngx_http_variable_value_t* v, ui
   TraceContext* traceContext = GetTraceContext(req);
 
   if (traceContext == nullptr || !traceContext->request_span) {
-    ngx_log_error_core(
+    ngx_log_error(
       NGX_LOG_WARN, req->connection->log, 0,
       "Unable to get trace context when expanding tracecontext var");
     return NGX_OK;
@@ -380,7 +380,7 @@ OtelGetTraceId(ngx_http_request_t* req, ngx_http_variable_value_t* v, uintptr_t 
   TraceContext* traceContext = GetTraceContext(req);
 
   if (traceContext == nullptr || !traceContext->request_span) {
-    ngx_log_error_core(
+    ngx_log_error(
       NGX_LOG_WARN, req->connection->log, 0,
       "Unable to get trace context when getting trace id");
     return NGX_OK;
@@ -393,7 +393,7 @@ OtelGetTraceId(ngx_http_request_t* req, ngx_http_variable_value_t* v, uintptr_t 
     char* data = (char*)ngx_palloc(req->pool, len);
 
     if(!data) {
-      ngx_log_error_core(
+      ngx_log_error(
         NGX_LOG_ERR, req->connection->log, 0,
         "Unable to allocate memory for the trace id");
 
@@ -436,7 +436,7 @@ OtelGetSpanId(ngx_http_request_t* req, ngx_http_variable_value_t* v, uintptr_t d
   TraceContext* traceContext = GetTraceContext(req);
 
   if (traceContext == nullptr || !traceContext->request_span) {
-    ngx_log_error_core(
+    ngx_log_error(
       NGX_LOG_WARN, req->connection->log, 0,
       "Unable to get trace context when getting span id");
     return NGX_OK;
@@ -449,7 +449,7 @@ OtelGetSpanId(ngx_http_request_t* req, ngx_http_variable_value_t* v, uintptr_t d
     char* data = (char*)ngx_palloc(req->pool, len);
 
     if(!data) {
-      ngx_log_error_core(
+      ngx_log_error(
         NGX_LOG_ERR, req->connection->log, 0,
         "Unable to allocate memory for the span id");
 
@@ -930,26 +930,26 @@ char* OtelNgxSetPropagation(ngx_conf_t* conf, ngx_command_t*, void* locConf) {
 
     if (propagationType == "b3") {
       locationConf->propagationType = TracePropagationB3;
-      ngx_log_error_core(NGX_LOG_NOTICE, conf->log, 0, "propagation type: b3");
+      ngx_log_error(NGX_LOG_NOTICE, conf->log, 0, "propagation type: b3");
     } else if (propagationType == "b3multi") {
       locationConf->propagationType = TracePropagationB3Multi;
-      ngx_log_error_core(NGX_LOG_NOTICE, conf->log, 0, "propagation type: b3multi");
+      ngx_log_error(NGX_LOG_NOTICE, conf->log, 0, "propagation type: b3multi");
     } else if (propagationType == "w3c") {
       locationConf->propagationType = TracePropagationW3C;
-      ngx_log_error_core(NGX_LOG_NOTICE, conf->log, 0, "propagation type: w3c");
+      ngx_log_error(NGX_LOG_NOTICE, conf->log, 0, "propagation type: w3c");
     } else if (propagationType == "jaeger") {
       locationConf->propagationType = TracePropagationJaeger;
-      ngx_log_error_core(NGX_LOG_NOTICE, conf->log, 0, "propagation type: jaeger");
+      ngx_log_error(NGX_LOG_NOTICE, conf->log, 0, "propagation type: jaeger");
     } else if (propagationType == "jaegerw3c") {
       locationConf->propagationType = TracePropagationJaegerW3C;
-      ngx_log_error_core(NGX_LOG_NOTICE, conf->log, 0, "propagation type: jaegerw3c");
+      ngx_log_error(NGX_LOG_NOTICE, conf->log, 0, "propagation type: jaegerw3c");
     } else {
-      ngx_log_error_core(NGX_LOG_ERR, conf->log, 0, "Unsupported propagation type");
+      ngx_log_error(NGX_LOG_ERR, conf->log, 0, "Unsupported propagation type");
       return (char*)NGX_CONF_ERROR;
     }
   } else {
     locationConf->propagationType = TracePropagationJaegerW3C;
-    ngx_log_error_core(NGX_LOG_NOTICE, conf->log, 0, "propagation type: jaegerw3c (default)");
+    ngx_log_error(NGX_LOG_NOTICE, conf->log, 0, "propagation type: (default)");
   }
 
   std::vector<HeaderPropagation> propagationVars;
@@ -1047,7 +1047,7 @@ char* OtelNgxSetBspMaxQueueSize(ngx_conf_t* cf, ngx_command_t*, void*) {
   int32_t v = atoi(strValue.c_str());
 
   if (v <= 0) {
-    ngx_log_error_core(NGX_LOG_ERR, cf->log, 0, "opentelemetry: max bsp queue size can't be <= 0");
+    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "opentelemetry: max bsp queue size can't be <= 0");
   } else {
     otelMainConf->agentConfig.processor.batch.maxQueueSize = v;
   }
@@ -1065,7 +1065,7 @@ char* OtelNgxSetBspScheduleDelayMillis(ngx_conf_t* cf, ngx_command_t*, void*) {
   int32_t v = atoi(strValue.c_str());
 
   if (v <= 0) {
-    ngx_log_error_core(NGX_LOG_ERR, cf->log, 0, "opentelemetry: bsp schedule delay can't be <= 0");
+    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "opentelemetry: bsp schedule delay can't be <= 0");
   } else {
     otelMainConf->agentConfig.processor.batch.maxExportBatchSize = v;
   }
@@ -1083,7 +1083,7 @@ char* OtelNgxSetBspMaxExportBatchSize(ngx_conf_t* cf, ngx_command_t*, void*) {
   int32_t v = atoi(strValue.c_str());
 
   if (v <= 0) {
-    ngx_log_error_core(NGX_LOG_ERR, cf->log, 0, "opentelemetry: bsp export batch size can't be <= 0");
+    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "opentelemetry: bsp export batch size can't be <= 0");
   } else {
     otelMainConf->agentConfig.processor.batch.maxExportBatchSize = v;
   }
@@ -1119,7 +1119,7 @@ char* OtelNgxSetTracesSampler(ngx_conf_t* cf, ngx_command_t*, void*) {
   if (isValidSampler) {
     otelMainConf->agentConfig.sampler = strSampler;
   } else {
-    ngx_log_error_core(NGX_LOG_ERR, cf->log, 0, "opentelemetry: unknown sampler %V", values);
+    ngx_log_error(NGX_LOG_ERR, cf->log, 0, "opentelemetry: unknown sampler %V", values);
   }
 
   return NGX_CONF_OK;
@@ -1179,7 +1179,7 @@ static ngx_regex_t* NgxCompileRegex(ngx_conf_t* conf, ngx_str_t pattern) {
   rc.err.len = sizeof(err);
 
   if (ngx_regex_compile(&rc) != NGX_OK) {
-    ngx_log_error_core(NGX_LOG_ERR, conf->log, 0, "illegal regex in %V: %V", (ngx_str_t*)conf->args->elts, &rc.err);
+    ngx_log_error(NGX_LOG_ERR, conf->log, 0, "illegal regex in %V: %V", (ngx_str_t*)conf->args->elts, &rc.err);
     return nullptr;
   }
 
@@ -1440,14 +1440,14 @@ static ngx_int_t OtelNgxStart(ngx_cycle_t* cycle) {
   auto exporter = CreateExporter(agentConf);
 
   if (!exporter) {
-    ngx_log_error_core(NGX_LOG_ERR, cycle->log, 0, "Unable to create span exporter - invalid type");
+    ngx_log_error(NGX_LOG_ERR, cycle->log, 0, "Unable to create span exporter - invalid type");
     return NGX_ERROR;
   }
 
   auto sampler = CreateSampler(agentConf);
 
   if (!sampler) {
-    ngx_log_error_core(NGX_LOG_ERR, cycle->log, 0, "Unable to create sampler - invalid type");
+    ngx_log_error(NGX_LOG_ERR, cycle->log, 0, "Unable to create sampler - invalid type");
     return NGX_ERROR;
   }
 
